@@ -55,3 +55,85 @@ int BlackjackStrategy::calculateBet(int currentBet) {
     return currentBet;
 }
 
+bool BlackjackStrategy::shouldSplit(const std::vector<std::string>& dealerHand, const std::vector<std::string>& playerHand) {
+    if (playerHand.size() != 2 || playerHand[0] != playerHand[1]) {
+        return false;
+
+        // should not split if already split once or if card 1 and 2 are not equal
+    }
+
+    // blackjack strategy from internet regarding player vs dealer during split
+    std::string card = playerHand[0];
+    std::string dealerUp = dealerHand[0];
+
+    if (card == "A" || card == "8") {
+        return true;
+    }
+
+    if (card == "9") {
+        if (dealerUp == "7" || isFaceCard(dealerUp)) {
+            return false;
+        }
+        return true;
+    }
+
+    if (isLowCard(card)) {
+        return true;
+    }
+
+    return false;
+}
+
+int BlackjackStrategy::calculatePoints(const std::vector<std::string>& hand) {
+    int points = 0;
+    int numAces = 0;
+
+    for (const auto& card : hand) {
+        if (card == "A") {
+            points += 11;
+            numAces++;
+        } else {
+            points += cardValue(card);
+        }
+    }
+
+    while (points > 21 && numAces > 0) {
+        points -= 10; // take the ace as a 1 if we bust with ace in our play
+        numAces--;
+    }
+
+    return points;
+}
+
+std::pair<std::string, int> BlackjackStrategy::getOptimalMove(int currentBet, std::vector<std::string> dealerHand, std::vector<std::string> playerHand, bool noSplit) {
+    for (auto& card : dealerHand) {
+        std::transform(card.begin(), card.end(), card.begin(), ::toupper);
+    }
+
+    for (auto& card : playerHand) {
+        std::transform(card.begin(), card.end(), card.begin(), ::toupper);
+    }
+
+
+    countCards(dealerHand);
+    countCards(playerHand);
+
+    int nextBet = calculateBet(currentBet);
+
+    if (!noSplit && shouldSplit(dealerHand, playerHand)) {
+        return {"split", nextBet};
+    }
+
+    int points = calculatePoints(playerHand);
+
+    if (points < 17) {
+        return {"hit", nextBet};
+    } else if (points > 21) {
+        return {"stand", nextBet};
+    } else if (points == 17 && playerHand.size() == 2 && 
+               (playerHand[0] == "A" || playerHand[1] == "A")) {
+        return {"double", nextBet};
+    }
+
+    return {"stand", nextBet};
+}
