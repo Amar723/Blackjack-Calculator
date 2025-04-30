@@ -18,6 +18,9 @@ public:
 
     void countCards(const std::vector<std::string>& hand);
     int calculateBet(int currentBet);
+    bool shouldSplit(const std::vector<std::string>& dealerHand, const std::vector<std::string>& playerHand);
+    int calculatePoints(const std::vector<std::string>& hand);
+    std::pair<std::string, int> getOptimalMove(int currentBet, std::vector<std::string> dealerHand, std::vector<std::string> playerHand, bool noSplit = false);
 };
 
 #endif
